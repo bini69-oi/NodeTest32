@@ -1,0 +1,12 @@
+# NodeTest32 · манифест внешних инструментов (обёртки с проверкой)
+# Формат: <tool> <raw-url-на-пиннутом-коммите> <ref> <sha256>
+# Пин на КОНКРЕТНЫЙ коммит (не master/main) — контент неизменен. sha256 сверяется
+# перед запуском (lib/brand.sh: fetch_verified). Обновление пина = осознанное действие:
+#   1) выбрать новый коммит в апстриме, 2) скачать raw, 3) пересчитать sha256, 4) вписать сюда.
+# Проверено и запиннено: 2026-08-01.
+
+ipregion    https://raw.githubusercontent.com/vernette/ipregion/91061d8b1a7c8783317b0cf97ff32f3606f0208d/ipregion.sh                       91061d8 23c792386e94e2fd62ba4274b1bcfab9be3ace8bb3b984539275bf371e25d8a8
+censorcheck https://raw.githubusercontent.com/vernette/censorcheck/aa4ca36034599f4ee999c33092cc6e6a9d54f9cb/censorcheck.sh                  aa4ca36 990eb6d80124354016ee34fe5040523fe590df7e2b5bdf9e2f319362fb47293b
+iperf3ru    https://raw.githubusercontent.com/itdoginfo/russian-iperf3-servers/82df96fa02a1df7fa39e2dd011421fdf1bfc085d/speedtest.sh         82df96f 068d37703beab0ec7e44a24ed45f6e911af51511ea6476a85add7250fab3d3dc
+yabs        https://raw.githubusercontent.com/masonr/yet-another-bench-script/f8c6a48cd6ff85b54c5cd2504f0807462dc58938/yabs.sh              f8c6a48 8d2bccbf1dd74f09e09233dc5286a13a17183bd304bc818e75b4ac6066c9e095
+ipquality   https://raw.githubusercontent.com/xykt/IPQuality/44a55baec6cdd166a68b37f9c07d62d9e0a04f23/ip.sh                                 44a55ba 69e7a8d0b9018a508fa7a54a3f7e98c9fa8c19eeb6995d60675070361cb76c03
