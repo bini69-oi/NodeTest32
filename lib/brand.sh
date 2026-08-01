@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NodeTest32 · бренд-кит — общие цвета, вывод, сводка, проверка внешних инструментов.
+# NodeTest32 · бренд-кит — общие цвета, вывод, сводка, загрузка модулей с проверкой целостности.
 # Подключается через `source lib/brand.sh`. Если его нет рядом (одиночный скрипт из
 # curl), каждый скрипт держит inline-fallback тех же функций.
 # Manual32 · manual32.online
@@ -64,7 +64,7 @@ sha256_of() {   # печатает hex-дайджест файла $1 или п�
   else echo ""; fi
 }
 
-# ------------------------------------------------------------------ внешние инструменты (обёртки с проверкой)
+# ------------------------------------------------------------------ загрузка модулей (пин + проверка целостности)
 # Манифест: строки "<tool> <url> <ref> <sha256>". Ищем рядом (ext/manifest) или тянем с пина.
 NT_REPO_RAW="${NT_REPO_RAW:-https://raw.githubusercontent.com/bini69-oi/NodeTest32/main}"
 manifest_path() {
@@ -82,26 +82,29 @@ manifest_line() {   # $1=tool -> "url ref sha256" из локального ма
   fi
 }
 
-# fetch_verified <tool> — скачать пиннутый скрипт, сверить sha256, напечатать провенанс.
-# Печатает путь к проверенному файлу в stdout (для запуска), диагностику в stderr. Код !=0 = отказ.
+# кэш подтянутых модулей — качаем один раз, дальше моментально
+NT_CACHE="${NODETEST32_HOME:-$HOME/.nodetest32}/tools"
+
+# fetch_verified <tool> — вернуть путь к готовому проверенному модулю (из кэша или скачать).
+# Скачивание с пина + сверка целостности sha256; путь в stdout, тихо при успехе. Код !=0 = отказ.
 fetch_verified() {
-  local tool="$1" line url ref want tmp got
+  local tool="$1" line url want cache tmp got
+  cache="$NT_CACHE/$tool.sh"
   line="$(manifest_line "$tool")"
-  if [ -z "$line" ]; then echo "нет пина для «$tool» в манифесте" >&2; return 1; fi
-  url="$(echo "$line" | awk '{print $1}')"; ref="$(echo "$line" | awk '{print $2}')"; want="$(echo "$line" | awk '{print $3}')"
-  tmp="$(mktemp 2>/dev/null || echo /tmp/nt32ext.$$)"
-  if ! curl -fsSL -m 30 "$url" -o "$tmp" 2>/dev/null; then echo "не скачался «$tool» ($url)" >&2; rm -f "$tmp"; return 1; fi
+  if [ -z "$line" ]; then echo "нет данных для модуля «$tool»" >&2; return 1; fi
+  url="$(echo "$line" | awk '{print $1}')"; want="$(echo "$line" | awk '{print $3}')"
+  # уже в кэше и цел — сразу отдаём
+  if [ -f "$cache" ] && [ -n "$want" ] && [ "$want" != "-" ]; then
+    got="$(sha256_of "$cache")"; [ "$got" = "$want" ] && { echo "$cache"; return 0; }
+  fi
+  mkdir -p "$NT_CACHE" 2>/dev/null
+  tmp="$(mktemp 2>/dev/null || echo /tmp/nt32m.$$)"
+  if ! curl -fsSL -m 30 "$url" -o "$tmp" 2>/dev/null; then echo "не загрузился модуль «$tool»" >&2; rm -f "$tmp"; return 1; fi
   if [ -n "$want" ] && [ "$want" != "-" ]; then
     got="$(sha256_of "$tmp")"
-    if [ -z "$got" ]; then echo "нечем проверить sha256 (нет sha256sum/shasum/openssl)" >&2; rm -f "$tmp"; return 1; fi
-    if [ "$got" != "$want" ]; then
-      echo "sha256 НЕ совпал для «$tool» — файл изменился или подменён. Отказ." >&2
-      echo "  ждали:  $want" >&2; echo "  на деле: $got" >&2
-      rm -f "$tmp"; return 1
-    fi
-    printf '  %sисточник: %s @%s · sha256 ✓%s\n' "${DIM}" "$url" "${ref:-?}" "${R}" >&2
-  else
-    printf '  %sисточник: %s @%s · sha256 не задан%s\n' "${DIM}" "$url" "${ref:-?}" "${R}" >&2
+    if [ -z "$got" ]; then echo "нечем проверить целостность (нет sha256sum/shasum/openssl)" >&2; rm -f "$tmp"; return 1; fi
+    if [ "$got" != "$want" ]; then echo "проверка целостности модуля «$tool» не прошла — пропускаю" >&2; rm -f "$tmp"; return 1; fi
   fi
-  echo "$tmp"
+  mv "$tmp" "$cache" 2>/dev/null && chmod 644 "$cache" 2>/dev/null
+  echo "$cache"
 }

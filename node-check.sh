@@ -493,8 +493,12 @@ stage9_summary() {
 
 # ============================================================ MAIN
 main() {
-  banner
   local arg1="${1:-}"
+  # предзагрузка xray (для мгновенного старта туннельной проверки), без баннера и меню
+  if [ "$arg1" = "--prefetch" ]; then
+    ensure_xray && [ -n "$XRAYBIN" ] && exit 0 || exit 1
+  fi
+  banner
   if [ -z "$arg1" ]; then
     printf '  %sкак запускать:%s\n' "$B" "$R"
     printf '    ./node-check.sh %s'\''vless://uuid@host:443?...#name'\''%s   полная проверка через туннель\n' "$BR" "$R"
