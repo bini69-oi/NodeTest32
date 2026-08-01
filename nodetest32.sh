@@ -7,7 +7,7 @@
 #
 # Manual32 · manual32.online
 
-VERSION="3.0.0"
+VERSION="3.1.0"
 NT_REPO_RAW="${NT_REPO_RAW:-https://raw.githubusercontent.com/bini69-oi/NodeTest32/main}"
 NT_HOME="${NODETEST32_HOME:-$HOME/.nodetest32}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd 2>/dev/null)"
@@ -51,7 +51,40 @@ run_tool() {   # $1=модуль $2=заголовок; далее — аргу�
   bash "$f" "$@"
 }
 
+# ------------------------------------------------------------------ xray-knife (сквозная проверка по ссылке)
+KNIFE_VER="v10.1.1"; KNIFE=""
+knife_asset() {   # печатает "asset sha256" под платформу
+  local s m; s="$(uname -s)"; m="$(uname -m)"
+  case "$s" in
+    Linux)  case "$m" in aarch64|arm64) echo "linux-arm64-v8a ff3343c57ea2bcfb8e72cbf41a8b3c17ce1c049d9cd0a951c073ae864d23aa68";; *) echo "linux-64 39696103eb99b4cb55ae5d2c2456210d826f4bbcf0f89e298a05fb5fb82f09e5";; esac;;
+    Darwin) case "$m" in arm64|aarch64) echo "macos-arm64-v8a ce76e2112a464b336be78ef37dde85d3eac2a082528b36a14cb11ab8fa038600";; *) echo "macos-64 5456543c3da4239ca5ca0e6a14ef91c04a535bc02ce53e72dc8884af4888bce4";; esac;;
+    *) echo "";;
+  esac
+}
+ensure_knife() {
+  local bin="$NT_HOME/knife/xray-knife"
+  [ -x "$bin" ] && { KNIFE="$bin"; return 0; }
+  local a asset want; a="$(knife_asset)"; [ -z "$a" ] && return 1
+  asset="${a%% *}"; want="${a##* }"
+  have unzip || { warn "нужен unzip: apt install unzip"; return 1; }
+  mkdir -p "$NT_HOME/knife" 2>/dev/null
+  local zip="$NT_HOME/knife/k.zip"
+  curl -fsSL -m 180 "https://github.com/lilendian0x00/xray-knife/releases/download/$KNIFE_VER/Xray-knife-$asset.zip" -o "$zip" 2>/dev/null || { rm -f "$zip"; return 1; }
+  [ "$(sha256_of "$zip")" != "$want" ] && { rm -f "$zip"; return 1; }
+  unzip -o "$zip" xray-knife -d "$NT_HOME/knife" >/dev/null 2>&1; rm -f "$zip"
+  [ -f "$bin" ] && chmod +x "$bin" 2>/dev/null
+  [ -x "$bin" ] && { KNIFE="$bin"; return 0; }; return 1
+}
+
 # ------------------------------------------------------------------ пункты
+m_e2e()      {
+  hd "Сквозная проверка по ссылке" ""
+  dim "запускай с чистой машины или другого сервера — не с самой ноды"
+  ensure_knife || { bad "не удалось подготовить проверку"; return; }
+  printf '  %sвставь vless://-ссылку тест-юзера и Enter: %s' "$B" "$R"; read -r link
+  [ -z "$link" ] && { dim "ссылка не введена"; return; }
+  "$KNIFE" http -c "$link" -p --check-preset global
+}
 m_audit()    { hd "Аудит сервера" ""; local p; p="$(get_sub node-inside.sh)"; [ -z "$p" ] && { bad "недоступно"; return; }; bash "$p"; }
 m_iperf()    { hd "Скорость до РФ" ""; have iperf3 || { bad "нет iperf3 (не удалось поставить при подготовке)"; return; }; local f; f="$(fetch_verified iperf3ru)" || { bad "недоступно"; return; }; bash "$f"; }
 m_dpi()      { run_tool censorcheck "DPI / ТСПУ" --mode dpi; }
@@ -67,7 +100,7 @@ pause() { printf '\n  %sEnter — назад в меню%s' "$DIM" "$R"; read -r
 run_all() {
   hd "Общая проверка" "все тесты подряд · Enter запустить, s пропустить"
   local fn
-  for fn in m_audit m_iperf m_dpi m_geoblock m_ipq m_region m_yabs m_cpu m_bench; do
+  for fn in m_e2e m_audit m_iperf m_dpi m_geoblock m_ipq m_region m_yabs m_cpu m_bench; do
     printf '\n  %sследующий — Enter запустить · s пропустить · q выход: %s' "$B" "$R"; read -r a || return
     case "$a" in s|S) dim "пропущено"; continue;; q|Q) return;; esac
     "$fn"
@@ -84,14 +117,15 @@ setup_tools() {
   # пакеты, которые нужны тестам — ставим сразу, без вопросов
   local pm; pm="$(pkg_mgr)"
   if [ -n "$pm" ]; then
-    local p; for p in iperf3 sysbench wget; do have "$p" || pkg_install "$p" >/dev/null 2>&1; done
-    ok "пакеты (iperf3, sysbench)"
+    local p; for p in iperf3 sysbench wget unzip; do have "$p" || pkg_install "$p" >/dev/null 2>&1; done
+    ok "пакеты (iperf3, sysbench, unzip)"
   else
     dim "пакетный менеджер не найден — iperf3/sysbench поставь вручную"
   fi
   # наши тесты и модули проверок
   get_sub node-inside.sh >/dev/null 2>&1
   local t; for t in ipregion censorcheck iperf3ru yabs ipquality bench; do fetch_verified "$t" >/dev/null 2>&1; done
+  ensure_knife >/dev/null 2>&1
   ok "инструменты"
   touch "$done_flag" 2>/dev/null
 }
@@ -102,15 +136,16 @@ show_menu() {
   banner "menu $VERSION"
   dim "нажми номер теста и Enter"
   printf '\n'
-  row 1 "Аудит сервера"
-  row 2 "Скорость до РФ"
-  row 3 "DPI / ТСПУ"
-  row 4 "Геоблокировки"
-  row 5 "Репутация IP"
-  row 6 "Регион по IP"
-  row 7 "Железо: CPU / диск / сеть"
-  row 8 "Тест CPU"
-  row 9 "Сводка сервера"
+  row 1 "Сквозная проверка по ссылке"
+  row 2 "Аудит сервера"
+  row 3 "Скорость до РФ"
+  row 4 "DPI / ТСПУ"
+  row 5 "Геоблокировки"
+  row 6 "Репутация IP"
+  row 7 "Регион по IP"
+  row 8 "Железо: CPU / диск / сеть"
+  row 9 "Тест CPU"
+  row 10 "Сводка сервера"
   printf '\n'
   row a "Общая проверка — все тесты"
   row i "Установить командой nodetest32"
@@ -122,9 +157,10 @@ menu_loop() {
   while true; do
     show_menu; read -r c || { printf '\n'; exit 0; }
     case "$c" in
-      1) m_audit; pause;; 2) m_iperf; pause;; 3) m_dpi; pause;;
-      4) m_geoblock; pause;; 5) m_ipq; pause;; 6) m_region; pause;;
-      7) m_yabs; pause;; 8) m_cpu; pause;; 9) m_bench; pause;;
+      1) m_e2e; pause;; 2) m_audit; pause;; 3) m_iperf; pause;;
+      4) m_dpi; pause;; 5) m_geoblock; pause;; 6) m_ipq; pause;;
+      7) m_region; pause;; 8) m_yabs; pause;; 9) m_cpu; pause;;
+      10) m_bench; pause;;
       a|A) run_all; pause;;
       i|I) do_install; pause;;
       q|Q|0) exit 0;;

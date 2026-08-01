@@ -26,21 +26,22 @@ bash <(curl -sL https://raw.githubusercontent.com/bini69-oi/NodeTest32/main/node
 
 | # | Тест | Что показывает |
 |---|------|----------------|
-| 1 | Аудит сервера | KVM/контейнер, стил (оверселл), AES-NI, RAM/диск/swap, BBR, IPv6, время |
-| 2 | Скорость до РФ | iperf3 до серверов внутри России |
-| 3 | DPI / ТСПУ | палится ли нода на российском DPI |
-| 4 | Геоблокировки | что режется с этого адреса |
-| 5 | Репутация IP | блок-листы и чистота адреса |
-| 6 | Регион по IP | какую страну видят сервисы |
-| 7 | Железо: CPU / диск / сеть | полный бенчмарк сервера |
-| 8 | Тест CPU | быстрый бенч процессора |
-| 9 | Сводка сервера | параметры + скорость |
+| 1 | Сквозная проверка по ссылке | реально ли идёт трафик через ноду: выходной IP, задержка, скорость, доступность сайтов (запускать с чистой машины) |
+| 2 | Аудит сервера | KVM/контейнер, стил (оверселл), AES-NI, RAM/диск/swap, BBR, IPv6, время |
+| 3 | Скорость до РФ | iperf3 до серверов внутри России |
+| 4 | DPI / ТСПУ | палится ли нода на российском DPI |
+| 5 | Геоблокировки | что режется с этого адреса |
+| 6 | Репутация IP | блок-листы и чистота адреса |
+| 7 | Регион по IP | какую страну видят сервисы |
+| 8 | Железо: CPU / диск / сеть | полный бенчмарк сервера |
+| 9 | Тест CPU | быстрый бенч процессора |
+| 10 | Сводка сервера | параметры + скорость |
 
 Любой тест — по номеру, или пункт **«Общая проверка»** прогонит всё подряд.
 
 ## Целостность
 
-Модули проверок подтягиваются один раз с зафиксированной версии и сверяются по контрольной сумме (`ext/manifest`) перед запуском. Под капотом используются открытые проекты — спасибо авторам: [ipregion](https://github.com/vernette/ipregion), [censorcheck](https://github.com/vernette/censorcheck), [russian-iperf3-servers](https://github.com/itdoginfo/russian-iperf3-servers), [YABS](https://github.com/masonr/yet-another-bench-script), [IPQuality](https://github.com/xykt/IPQuality), [bench.sh](https://github.com/teddysun/across).
+Модули проверок подтягиваются один раз с зафиксированной версии и сверяются по контрольной сумме (`ext/manifest`) перед запуском. Под капотом используются открытые проекты — спасибо авторам: [xray-knife](https://github.com/lilendian0x00/xray-knife), [ipregion](https://github.com/vernette/ipregion), [censorcheck](https://github.com/vernette/censorcheck), [russian-iperf3-servers](https://github.com/itdoginfo/russian-iperf3-servers), [YABS](https://github.com/masonr/yet-another-bench-script), [IPQuality](https://github.com/xykt/IPQuality), [bench.sh](https://github.com/teddysun/across).
 
 ---
 
