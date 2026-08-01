@@ -106,7 +106,7 @@ run_all() {
   else items="m_inside m_iperf_ru m_dpi m_geoblock m_ipquality m_ipregion m_yabs m_sysbench"; fi
   local fn
   for fn in $items; do
-    printf '\n  %s%s — Enter запустить · s пропустить · q выход: %s' "$B" "$fn" "$R"; read -r a
+    printf '\n  %s%s — Enter запустить · s пропустить · q выход: %s' "$B" "$fn" "$R"; read -r a || return
     case "$a" in s|S) dim "пропущено"; continue;; q|Q) return;; esac
     "$fn"
   done
@@ -138,7 +138,7 @@ show_menu() {
 
 menu_loop() {
   while true; do
-    show_menu; read -r c
+    show_menu; read -r c || { printf '\n  %sввод закончился — выход%s\n' "$DIM" "$R"; exit 0; }
     case "$c" in
       1) m_check_full; pause;; 2) m_check_ip; pause;; 3) m_inside; pause;;
       4) m_iperf_ru; pause;; 5) m_dpi; pause;; 6) m_geoblock; pause;;
