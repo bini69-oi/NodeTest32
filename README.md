@@ -44,8 +44,11 @@ nodetest32 --no-external
 | 8 | Регион по сервисам | какую страну видят Spotify/Netflix/CDN | ipregion |
 | 9 | Железо: CPU / диск / сеть | оверселл, медленный диск | YABS |
 | 10 | sysbench CPU | быстрый бенч процессора | нативно |
+| 11 | bench.sh | параметры сервера + скорость за рубеж | teddysun |
 
 Плюс пункт «прогнать всё для режима» (последовательно, с пропуском по Enter).
+
+> Секция скорости в `bench.sh` использует Ookla Speedtest, заблокированный из РФ — с российской ноды она может не отработать; параметры сервера при этом показываются.
 
 Тестер **ничего не меняет на сервере**. На каждый провал он показывает точную команду-фикс (включить BBR, MSS-clamp от MTU-дыры, добавить swap, UseIPv4) — применяешь сам, осознанно.
 
@@ -93,6 +96,7 @@ ssh root@1.2.3.4 'bash -s' < node-inside.sh
 - [itdoginfo/russian-iperf3-servers](https://github.com/itdoginfo/russian-iperf3-servers) — iperf3 к серверам в РФ
 - [masonr/yet-another-bench-script](https://github.com/masonr/yet-another-bench-script) — YABS, бенчмарк железа
 - [xykt/IPQuality](https://github.com/xykt/IPQuality) — глубокая репутация IP
+- [teddysun/across](https://github.com/teddysun/across) — bench.sh, параметры сервера и скорость
 - идея интерактивного меню — [saveksme/multitest](https://github.com/saveksme/multitest)
 
 ## Требования

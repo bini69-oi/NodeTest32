@@ -10,3 +10,4 @@ censorcheck https://raw.githubusercontent.com/vernette/censorcheck/aa4ca36034599
 iperf3ru    https://raw.githubusercontent.com/itdoginfo/russian-iperf3-servers/82df96fa02a1df7fa39e2dd011421fdf1bfc085d/speedtest.sh         82df96f 068d37703beab0ec7e44a24ed45f6e911af51511ea6476a85add7250fab3d3dc
 yabs        https://raw.githubusercontent.com/masonr/yet-another-bench-script/f8c6a48cd6ff85b54c5cd2504f0807462dc58938/yabs.sh              f8c6a48 8d2bccbf1dd74f09e09233dc5286a13a17183bd304bc818e75b4ac6066c9e095
 ipquality   https://raw.githubusercontent.com/xykt/IPQuality/44a55baec6cdd166a68b37f9c07d62d9e0a04f23/ip.sh                                 44a55ba 69e7a8d0b9018a508fa7a54a3f7e98c9fa8c19eeb6995d60675070361cb76c03
+bench       https://raw.githubusercontent.com/teddysun/across/fdb40962837b2e24bc94b87c2b1786ad2308489a/bench.sh                             fdb4096 fbc7d7ec27f59939ba798f456ed3d31931c6d3d4604a63e6d563b19a4974ae04

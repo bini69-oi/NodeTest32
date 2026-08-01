@@ -95,6 +95,7 @@ m_ipquality()  { run_ext ipquality "Репутация / чистота IP (гл
 m_ipregion()   { run_ext ipregion "Регион по сервисам"; }
 m_yabs()       { run_ext yabs "Железо: CPU / диск / сеть" -4; }
 m_sysbench()   { hd "sysbench CPU" "нативно, 1 поток"; dep_offer sysbench sysbench || return; sysbench cpu run --threads=1 2>/dev/null | grep -E 'events per second|total time' | sed 's/^/  /'; }
+m_bench()      { dim "секция скорости за рубеж (Ookla) из РФ часто не отрабатывает — параметры сервера покажет в любом случае"; run_ext bench "bench.sh — параметры + скорость"; }
 
 pause() { printf '\n  %sEnter — назад в меню...%s' "$DIM" "$R"; read -r _; }
 
@@ -103,7 +104,7 @@ run_all() {
   hd "Прогнать всё для режима: $CTX" "Enter — запустить пункт, s — пропустить"
   local items
   if [ "$CTX" = "client" ]; then items="m_check_full"
-  else items="m_inside m_iperf_ru m_dpi m_geoblock m_ipquality m_ipregion m_yabs m_sysbench"; fi
+  else items="m_inside m_iperf_ru m_dpi m_geoblock m_ipquality m_ipregion m_yabs m_sysbench m_bench"; fi
   local fn
   for fn in $items; do
     printf '\n  %s%s — Enter запустить · s пропустить · q выход: %s' "$B" "$fn" "$R"; read -r a || return
@@ -132,6 +133,7 @@ show_menu() {
   printf '   %s8%s  Регион по сервисам               %s\n' "$OKC" "$R" "$(xlabel)"
   printf '   %s9%s  Железо: CPU / диск / сеть        %s\n' "$OKC" "$R" "$(xlabel)"
   printf '  %s10%s  sysbench CPU                     %sнативно%s\n' "$OKC" "$R" "$DIM" "$R"
+  printf '  %s11%s  bench.sh — параметры + скорость  %s\n' "$OKC" "$R" "$(xlabel)"
   printf '\n  %sa%s  прогнать всё для режима   %si%s  установить командой   %sq%s  выход\n\n' "$B" "$R" "$B" "$R" "$B" "$R"
   printf '  %sвыбор: %s' "$B" "$R"
 }
@@ -143,7 +145,7 @@ menu_loop() {
       1) m_check_full; pause;; 2) m_check_ip; pause;; 3) m_inside; pause;;
       4) m_iperf_ru; pause;; 5) m_dpi; pause;; 6) m_geoblock; pause;;
       7) m_ipquality; pause;; 8) m_ipregion; pause;; 9) m_yabs; pause;;
-      10) m_sysbench; pause;;
+      10) m_sysbench; pause;; 11) m_bench; pause;;
       a|A) run_all; pause;;
       i|I) do_install; pause;;
       q|Q|0) printf '  %sдо связи%s\n' "$DIM" "$R"; exit 0;;
